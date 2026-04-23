@@ -372,7 +372,7 @@ def render_header() -> None:
             font-size: 20px;
             font-weight: 700;
         ">
-            📊 Datastart EdgeFinder
+            📊 Datastart EdgeLab
         </div>
         """,
         unsafe_allow_html=True,

@@ -1,5 +1,6 @@
 import streamlit as st
 
+from edg_auth import get_auth_user, logout
 from edg_state_helpers import (
     initialize_session_state,
     reset_analysis_state,
@@ -26,7 +27,7 @@ def render_header() -> None:
             font-size: 20px;
             font-weight: 700;
         ">
-            📊 Datastart EdgeFinder
+            📊 Datastart EdgeLab
         </div>
         """,
         unsafe_allow_html=True,
@@ -51,6 +52,16 @@ def render_header() -> None:
 
 def render_sidebar() -> None:
     with st.sidebar:
+        st.markdown("### Account")
+        user_email = get_auth_user() or "Signed in"
+        st.caption(user_email)
+
+        if st.button("Sign out", use_container_width=True):
+            logout()
+            reset_analysis_state()
+            st.rerun()
+
+        st.markdown("---")
         st.markdown("### Controls")
 
         if st.button("Start New Analysis", use_container_width=True):
@@ -87,7 +98,7 @@ def render_sidebar() -> None:
 def render_help_tab() -> None:
     st.markdown(
         """
-        ## EdgeFinder Help
+        ## EdgeLab Help
 
         **What this tool does**  
         Finds potentially profitable patterns in your data and validates them using out-of-sample testing.
@@ -121,47 +132,32 @@ def render_analysis_workspace() -> None:
         st.success(st.session_state.analysis_notice)
         st.session_state.analysis_notice = ""
 
-    tab_names = [
+    tabs = st.tabs([
         "Possible Filters",
         "Column Detail",
         "Active Filters",
         "Auto Build",
         "Help",
-    ]
+    ])
 
-    if "analysis_active_tab" not in st.session_state:
-        st.session_state.analysis_active_tab = "Possible Filters"
-
-    active_tab = st.session_state.get("analysis_active_tab", "Possible Filters")
-    if active_tab not in tab_names:
-        active_tab = "Possible Filters"
-        st.session_state.analysis_active_tab = active_tab
-
-    selected_tab = st.radio(
-        "Navigation",
-        tab_names,
-        index=tab_names.index(active_tab),
-        horizontal=True,
-        key="analysis_active_tab_radio",
-        label_visibility="collapsed",
-    )
-
-    st.session_state.analysis_active_tab = selected_tab
-
-    if selected_tab == "Possible Filters":
+    with tabs[0]:
         render_results_tab(results, context)
-    elif selected_tab == "Column Detail":
+
+    with tabs[1]:
         render_column_detail_tab(results)
-    elif selected_tab == "Active Filters":
+
+    with tabs[2]:
         render_active_filters_tab()
-    elif selected_tab == "Auto Build":
+
+    with tabs[3]:
         render_auto_build_tab(results, context)
-    elif selected_tab == "Help":
+
+    with tabs[4]:
         render_help_tab()
 
 
 def main() -> None:
-    st.set_page_config(page_title="Datastart EdgeFinder", layout="wide")
+    st.set_page_config(page_title="Datastart EdgeLab", layout="wide")
     initialize_session_state()
     ensure_auto_build_state()
     inject_css()
