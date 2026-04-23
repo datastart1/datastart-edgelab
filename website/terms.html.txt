@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terms of Use - Datastart EdgeLab</title>
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px;">
+  <h1>Terms of Use</h1>
+  <p>Datastart EdgeLab is licensed software provided by Datastart Information Systems.</p>
+  <p>Use of the software is subject to a valid subscription or license.</p>
+  <p>You may not copy, resell, or redistribute the software except as permitted in writing.</p>
+  <p>For support and licensing queries, contact: info@datastartedgelab.com</p>
+</body>
+</html>
