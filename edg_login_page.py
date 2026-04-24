@@ -1,40 +1,31 @@
-
 import streamlit as st
 
-from edg_auth import initialize_auth_state, login
+from edg_auth import login
 
 
 def render_login_page() -> None:
-    initialize_auth_state()
-
-    st.markdown(
-        """
-        <div style="margin-top: 0.5rem; margin-bottom: 0.25rem; font-size: 28px; font-weight: 700;">
-            📊 Datastart EdgeLab
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.caption("Sign in to access the application.")
+    st.set_page_config(page_title="Datastart EdgeLab", layout="wide")
 
     left, centre, right = st.columns([1, 1.2, 1])
+
     with centre:
-        st.markdown("### Sign in")
+        st.markdown("## Datastart EdgeLab")
+        st.markdown("Sign in to access the application.")
+
         with st.form("login_form", clear_on_submit=False, enter_to_submit=False):
-            email = st.text_input("Email", placeholder="you@example.com")
+            email = st.text_input("Email")
             password = st.text_input("Password", type="password")
-            submitted = st.form_submit_button("Sign in", use_container_width=True)
+            submitted = st.form_submit_button("Sign In", use_container_width=True)
 
         if submitted:
-            success, message = login(email, password)
-            if success:
-                st.success(message)
-                st.rerun()
+            if not email.strip():
+                st.error("Please enter your email address.")
+            elif not password:
+                st.error("Please enter your password.")
             else:
-                st.error(message)
-
-        st.info(
-            "This is a temporary mocked sign-in screen while the Lemon Squeezy-backed "
-            "account flow is being wired in. For now, any valid email and any password "
-            "with at least 6 characters will work."
-        )
+                ok = login(email.strip(), password)
+                if ok:
+                    st.rerun()
+                else:
+                    st.error(st.session_state.get("auth_error", "Login failed."))
+        

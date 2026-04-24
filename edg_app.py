@@ -1,6 +1,6 @@
 import streamlit as st
 
-from edg_auth import get_auth_user, logout
+from edg_auth import logout
 from edg_state_helpers import (
     initialize_session_state,
     reset_analysis_state,
@@ -53,8 +53,13 @@ def render_header() -> None:
 def render_sidebar() -> None:
     with st.sidebar:
         st.markdown("### Account")
-        user_email = get_auth_user() or "Signed in"
+        user_email = st.session_state.get("auth_email", "Signed in")
+        user_plan = st.session_state.get("auth_plan", "")
+
         st.caption(user_email)
+
+        if user_plan:
+            st.caption(f"Plan: {user_plan}")
 
         if st.button("Sign out", use_container_width=True):
             logout()
