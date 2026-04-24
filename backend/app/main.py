@@ -192,6 +192,13 @@ def upsert_user(
         raise RuntimeError("Failed to load saved user")
     return user
 
+def require_admin_key(x_admin_key: Optional[str]) -> None:
+    expected = os.getenv("ADMIN_API_KEY", "")
+    if not expected:
+        raise HTTPException(status_code=500, detail="ADMIN_API_KEY is not configured")
+    if x_admin_key != expected:
+        raise HTTPException(status_code=403, detail="Invalid admin key")
+
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -218,6 +225,12 @@ class SetPasswordRequest(BaseModel):
     email: EmailStr
     password: str
 
+class UpsertTestUserRequest(BaseModel):
+    email: EmailStr
+    password: str
+    full_name: str = "Test User"
+    plan: str = "Test Access"
+    subscription_active: bool = True
 
 def issue_token(email: str) -> str:
     expires = utc_now() + timedelta(days=7)
@@ -317,6 +330,41 @@ def set_password(payload: SetPasswordRequest):
 
     return {"success": True, "email": updated["email"]}
 
+@app.post("/admin/upsert-test-user")
+def upsert_test_user(
+    payload: UpsertTestUserRequest,
+    x_admin_key: Optional[str] = Header(default=None),
+):
+    require_admin_key(x_admin_key)
+
+    email = payload.email.lower().strip()
+
+    if len(payload.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+
+    existing = get_user_by_email(email)
+    action = "updated" if existing else "created"
+
+    user = upsert_user(
+        email=email,
+        password=payload.password,
+        full_name=payload.full_name,
+        subscription_active=payload.subscription_active,
+        plan_name=payload.plan,
+        lemonsqueezy_customer_id=(existing or {}).get("lemonsqueezy_customer_id", ""),
+        lemonsqueezy_subscription_id=(existing or {}).get("lemonsqueezy_subscription_id", ""),
+        lemonsqueezy_order_id=(existing or {}).get("lemonsqueezy_order_id", ""),
+        lemonsqueezy_license_key=(existing or {}).get("lemonsqueezy_license_key", ""),
+    )
+
+    return {
+        "success": True,
+        "action": action,
+        "email": user["email"],
+        "full_name": user["full_name"],
+        "plan": user["plan_name"],
+        "subscription_active": bool(user["subscription_active"]),
+    }
 
 @app.post("/webhooks/lemonsqueezy")
 async def lemonsqueezy_webhook(request: Request):
